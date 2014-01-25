@@ -8,7 +8,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # location of additional build machinary
 AC_CONFIG_HEADERS([config.h])
 AC_SUBST([ACLOCAL_AMFLAGS], ["-I $ac_macro_dir \${ACLOCAL_FLAGS} --install"])
-AC_CONFIG_SRCDIR([sources/src/Main.cpp])
+AC_CONFIG_SRCDIR([sources/include/Log.hpp])
 AM_INIT_AUTOMAKE([1.10 no-define foreign tar-pax])
 
 m4_include([m4/generic/fuma_ax_write.m4])
@@ -41,6 +41,7 @@ AC_CONFIG_FILES([Makefile
                  sources/lib/Makefile
                  sources/lib/socket/Makefile
                  sources/lib/client/Makefile
+                 sources/src/proxy/Makefile
                  sources/src/Makefile])
 
 # I like maintainer mode
