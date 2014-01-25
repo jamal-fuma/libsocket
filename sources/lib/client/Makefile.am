@@ -12,6 +12,12 @@ libClient_la_SOURCES = \
 		       $(top_srcdir)/sources/include/EventLoopCTX.hpp \
 		       EventLoopCTX.cpp \
 		       \
+		       $(top_srcdir)/sources/include/ServerApp.hpp \
+		       ServerApp.cpp \
+		       \
+		       $(top_srcdir)/sources/include/ServerClient.hpp \
+		       ServerClient.cpp \
+		       \
 		       $(top_srcdir)/sources/include/BufferedSocket.hpp \
 		       BufferedSocket.cpp \
 		       \

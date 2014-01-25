@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.61])
-AC_INIT([fuma-socket-library],[0.0.1],[jamal.natour@fumasoftware.com])
+AC_INIT([fuma-socket-library],[0.0.2],[jamal.natour@fumasoftware.com])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -41,8 +41,11 @@ AC_CONFIG_FILES([Makefile
                  sources/lib/Makefile
                  sources/lib/socket/Makefile
                  sources/lib/client/Makefile
+                 sources/src/Makefile
                  sources/src/proxy/Makefile
-                 sources/src/Makefile])
+                 sources/src/echo/Makefile
+                 sources/src/client/Makefile
+                 ])
 
 # I like maintainer mode
 AM_MAINTAINER_MODE

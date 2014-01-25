@@ -162,7 +162,7 @@ int detail::select(int nfds, fd_set *rd, fd_set *wr, fd_set *er, struct timeval 
         rc = ::select(nfds + 1, rd, wr, er, tm);
     }while(rc == -1 && errno == EINTR);
 
-    Log("\tdetail::select()") << "nfds " << nfds+1 << " " << rc;
+    Log("\tdetail::select()") << "nfds: " << nfds+1 << " discriptors ready for I/O: " << rc;
 
     return rc;
 }

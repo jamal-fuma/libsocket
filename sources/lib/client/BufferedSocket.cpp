@@ -14,16 +14,16 @@ BufferedSocket::BufferedSocket()
 {
 }
 
-BufferedSocket::BufferedSocket(int sock)
-    : m_sock(sock)
-    , m_buffer(FixedBuffer(kBufferSize))
-{
-}
-
 BufferedSocket::~BufferedSocket()
 {
     clear();
     close();
+}
+
+BufferedSocket::BufferedSocket(int sock)
+    : m_sock(sock)
+    , m_buffer(FixedBuffer(kBufferSize))
+{
 }
 
 BufferedSocket::BufferedSocket(const BufferedSocket & rhs)
@@ -33,7 +33,8 @@ BufferedSocket::BufferedSocket(const BufferedSocket & rhs)
     copy_assign(rhs);
 }
 
-BufferedSocket & BufferedSocket::operator=(const BufferedSocket & rhs)
+BufferedSocket &
+BufferedSocket::operator=(const BufferedSocket & rhs)
 {
     copy_assign(rhs);
     return *this;
@@ -45,9 +46,9 @@ BufferedSocket::copy_assign(const BufferedSocket & rhs)
     if(this != &rhs)
     {
         Log("BufferedSocket::copy_assign()") << "assign socket with value "
-                                << rhs.m_sock.get_sockfd()
-                                << " to socket with value "
-                                << m_sock.get_sockfd() ;
+            << rhs.m_sock.get_sockfd()
+            << " to socket with value "
+            << m_sock.get_sockfd() ;
 
         m_sock   = rhs.m_sock;
         m_buffer = rhs.m_buffer;
@@ -60,8 +61,8 @@ BufferedSocket::move_assign(BufferedSocket & rhs)
     if(this != &rhs)
     {
         Log("BufferedSocket::move_assign()")
-                                << "forget socket with value " << m_sock.get_sockfd()
-                                << " acquire socket with value " << rhs.m_sock.get_sockfd() ;
+            << "forget socket with value " << m_sock.get_sockfd()
+            << " acquire socket with value " << rhs.m_sock.get_sockfd() ;
 
         m_sock   = rhs.m_sock;
         m_buffer = rhs.m_buffer;
@@ -77,8 +78,8 @@ BufferedSocket::swap(BufferedSocket & rhs)
     if(this != &rhs)
     {
         Log("BufferedSocket::swap()")
-                                << "swap socket with value " << m_sock.get_sockfd()
-                                << "for socket with value " << rhs.m_sock.get_sockfd() ;
+            << "swap socket with value " << m_sock.get_sockfd()
+            << "for socket with value " << rhs.m_sock.get_sockfd() ;
 
         std::swap(m_sock,rhs.m_sock);
         std::swap(m_buffer,rhs.m_buffer);
@@ -97,131 +98,20 @@ BufferedSocket::is_valid() const
     return (get_sockfd() != kInvalidSocket);
 }
 
-bool
-BufferedSocket::is_empty() const
-{
-    return m_buffer.is_empty();
-}
-
-bool
-BufferedSocket::is_ready_for_reader() const
-{
-    return (is_valid() && m_buffer.is_write_possible());
-}
-
-bool
-BufferedSocket::is_ready_for_writer() const
-{
-    return m_buffer.is_read_pending();
-}
-
-ssize_t
-BufferedSocket::recv()
-{
-    ssize_t rc = detail::recv(
-        get_sockfd(),
-        m_buffer.write_head(),
-        m_buffer.capacity(),
-        0
-    );
-    if (rc == kInvalidSocket || !rc)
-        close();
-    else
-        m_buffer.complete_write(rc);
-
-    return rc;
-}
-
-ssize_t
-BufferedSocket::recv_oob()
-{
-    ssize_t rc = detail::recv(
-        get_sockfd(),
-        &m_oob_ch,
-        sizeof(m_oob_ch),
-        MSG_OOB
-    );
-
-    if (rc == kInvalidSocket || !rc)
-        close();
-
-    return rc;
-}
-
-std::string
-BufferedSocket::read()
-{
-    return std::string(m_buffer.read_head(),m_buffer.length());
-}
-
-ssize_t
-BufferedSocket::write(const std::string & str)
-{
-    size_t size      = str.length();
-    size_t capacity  = m_buffer.capacity();
-    bool fragmented_write = (size > capacity);
-
-    std::string::const_iterator end(
-        (fragmented_write) ? str.begin() : str.end()
-    );
-
-    if(fragmented_write)
-    {
-        std::advance(end,capacity);
-    }
-
-    std::vector<char> v(str.begin(),end);
-    size_t written(v.size());
-
-    ::memcpy(m_buffer.read_head(),&v[0],written);
-    m_buffer.complete_write(written);
-
-    return size - written;
-}
-
-
-ssize_t
-BufferedSocket::send(BufferedSocket & dest)
-{
-    ssize_t rc = detail::send(
-        dest.get_sockfd(),
-        m_buffer.read_head(),
-        m_buffer.length(),
-        0
-    );
-    if (rc == kInvalidSocket || !rc)
-        dest.close();
-    else
-        m_buffer.complete_read(rc);
-
-    return rc;
-}
-
-ssize_t
-BufferedSocket::send_oob(BufferedSocket & dest)
-{
-    ssize_t rc = detail::send(
-        dest.get_sockfd(),
-        &m_oob_ch,
-        sizeof(m_oob_ch),
-        MSG_OOB
-    );
-
-    if (rc == kInvalidSocket || !rc)
-        dest.close();
-
-    return rc;
-}
-
 int
 BufferedSocket::connect(const Address & addr)
 {
     StreamSocket sock;
 
     int rc = sock.connect(addr);
+    int err = errno;
     if(kInvalidSocket != rc)
     {
         m_sock.swap(sock);
+    }
+    else
+    {
+        Log("BufferedSocket::connect") << "failed " << strerror(err);
     }
     return rc;
 }
@@ -232,10 +122,58 @@ BufferedSocket::get_peername(Address & addr)
     return m_sock.getpeername(addr);
 }
 
-void
-BufferedSocket::clear()
+ssize_t
+BufferedSocket::recv()
 {
-    m_buffer.clear();
+    ssize_t rc = BufferIO::recv(get_sockfd(),m_buffer);
+    if (rc == kInvalidSocket || !rc)
+        close();
+    return rc;
+}
+
+ssize_t
+BufferedSocket::recv_oob()
+{
+    ssize_t rc = detail::recv(
+            get_sockfd(),
+            &m_oob_ch,
+            sizeof(m_oob_ch),
+            MSG_OOB
+            );
+
+    if (rc == kInvalidSocket || !rc)
+        close();
+
+    return rc;
+}
+
+void BufferedSocket::recv_if_readable(EventLoopCTX & ctx)
+{
+    EventLoop::recv_if_readable(*this,ctx);
+}
+
+void BufferedSocket::send_if_writable(EventLoopCTX & ctx, BufferedSocket & sock_out)
+{
+    if(is_valid() && EventLoop::is_writeable(*this,ctx))
+        sock_out.send(*this);
+}
+
+ssize_t
+BufferedSocket::send(BufferedSocket & dest)
+{
+    return BufferIO::send(dest,m_buffer);
+}
+
+void BufferedSocket::close_if_empty(BufferedSocket & sock_out)
+{
+    if(!is_valid() && is_empty())
+        sock_out.close();
+}
+
+bool
+BufferedSocket::is_empty() const
+{
+    return m_buffer.is_empty();
 }
 
 void
@@ -248,51 +186,93 @@ BufferedSocket::close()
     }
 }
 
-void BufferedSocket::recv_if_readable(EventLoopCTX & ctx)
-{
-    if(is_valid() && ctx.fd_in_readset(get_sockfd()))
-        recv();
-}
-
-void BufferedSocket::send_if_writable(EventLoopCTX & ctx, BufferedSocket & sock_out)
-{
-    if(is_valid() && ctx.fd_in_writeset(get_sockfd()))
-        sock_out.send(*this);
-}
-
-void BufferedSocket::close_if_empty(BufferedSocket & sock_out)
-{
-    if(!is_valid() && is_empty())
-        sock_out.close();
-}
-
 void BufferedSocket::xfer_if_oob(EventLoopCTX & ctx, BufferedSocket & sock_out)
 {
-    if(is_valid() && ctx.fd_in_errorset(get_sockfd()))
-        if ( recv_oob() != BufferedSocket::kInvalidSocket)
-            send_oob(sock_out);
+    if(EventLoop::recv_oob_if_exceptional(*this,ctx))
+        send_oob(sock_out);
 }
 
-void BufferedSocket::add_if_readable(EventLoopCTX & ctx)
+ssize_t
+BufferedSocket::send_oob(BufferedSocket & dest)
 {
-    if(is_ready_for_reader())
-        ctx.add_to_readset(get_sockfd());
+    ssize_t rc = detail::send(
+            dest.get_sockfd(),
+            &m_oob_ch,
+            sizeof(m_oob_ch),
+            MSG_OOB
+            );
+
+    if (rc == kInvalidSocket || !rc)
+        dest.close();
+
+    return rc;
 }
 
-void BufferedSocket::add_if_writable(EventLoopCTX & ctx,BufferedSocket & sock_out)
-{
-    if(is_valid() && sock_out.is_ready_for_writer())
-        ctx.add_to_writeset(get_sockfd());
-}
-
-void BufferedSocket::add_if_oob(EventLoopCTX & ctx)
-{
-    if (is_valid())
-        ctx.add_to_errorset(get_sockfd());
-}
 void BufferedSocket::add_if_pollable(EventLoopCTX & ctx, BufferedSocket & sock_out)
 {
     add_if_readable(ctx);
     add_if_writable(ctx,sock_out);
     add_if_oob(ctx);
+}
+
+void BufferedSocket::add_if_readable(EventLoopCTX & ctx)
+{
+    // add socket to reader queue if buffer has unused capacity
+    if(is_ready_for_reader())
+        EventLoop::add_to_readset(*this,ctx);
+}
+
+bool
+BufferedSocket::is_ready_for_reader() const
+{
+    // mark socket readable if buffer has unused capacity
+    return (is_valid() && m_buffer.is_write_possible());
+}
+
+void
+BufferedSocket::add_if_writable(EventLoopCTX & ctx,BufferedSocket & sock_out)
+{
+    // add their socket to writer queue if our buffer contains something to write.
+    if(is_valid() && sock_out.is_ready_for_writer())
+        EventLoop::add_to_writeset(*this,ctx);
+}
+
+bool
+BufferedSocket::is_ready_for_writer() const
+{
+    // mark socket writeable if buffer contains data
+    return m_buffer.is_read_pending();
+}
+
+void BufferedSocket::add_if_oob(EventLoopCTX & ctx)
+{
+    // add socket to exeptional queue irrespective of buffer state
+    if (is_valid())
+        EventLoop::add_to_errorset(*this,ctx);
+}
+
+void
+BufferedSocket::clear()
+{
+    m_buffer.clear();
+}
+
+std::string
+BufferedSocket::drain()
+{
+    std::string s(read());
+    m_buffer.complete_read(s.size());
+    return s;
+}
+
+std::string
+BufferedSocket::read()
+{
+    return BufferIO::to_string(m_buffer,m_buffer.length());
+}
+
+ssize_t
+BufferedSocket::write(const std::string & str)
+{
+    return BufferIO::write(m_buffer,str);
 }

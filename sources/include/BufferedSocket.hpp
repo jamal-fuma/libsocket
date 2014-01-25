@@ -39,6 +39,7 @@ class BufferedSocket
 
         ssize_t recv();
         std::string read();
+        std::string drain();
         ssize_t write(const std::string & str);
 
         ssize_t send(BufferedSocket & dest);

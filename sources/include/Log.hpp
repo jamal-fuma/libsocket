@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <sstream>
-
+#include <unistd.h>
 struct Log
 {
         Log(const char *name)
@@ -20,7 +20,8 @@ struct Log
 
         ~Log()
         {
-          std::cout << "[" << m_name << "] says: " << m_msg.str() << "\n";
+          std::cerr << "[" << ::getpid() << "] ";
+          std::cerr << "[" << m_name << "] says: " << m_msg.str() << "\n";
         }
 
 private:

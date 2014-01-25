@@ -1,23 +1,23 @@
-bin_PROGRAMS = SocketFwd
+bin_PROGRAMS = EchoClient
 
 confdir = $(sysconfdir)/$(PACKAGE)/conf
 
-SocketFwd_CPPFLAGS=\
+EchoClient_CPPFLAGS=\
 		  -I$(top_srcdir)/sources/include \
 		  -I$(top_srcdir)/sources/src	\
+		  -I$(top_srcdir)/sources/src/proxy	\
 		  -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\"" \
 		  -DDEFAULT_CONFIG_FILE="\"${confdir}/client.conf\""
 
-SocketFwd_SOURCES = \
-		   $(top_srcdir)/sources/include/SocketProxy.hpp \
-		   $(top_srcdir)/sources/include/ServerApp.hpp \
-		   ProxyApp.hpp \
-		   ProxyApp.cpp \
+EchoClient_SOURCES = \
+		   $(top_srcdir)/sources/include/ServerClient.hpp \
+		   EchoClient.hpp \
+		   EchoClient.cpp \
 		   Main.cpp
 
-SocketFwd_LDFLAGS = -Wl,-install_name,@executable_path/../Frameworks
+EchoClient_LDFLAGS = -Wl,-install_name,@executable_path/../Frameworks
 
-SocketFwd_LDADD   = \
+EchoClient_LDADD   = \
 		   $(top_builddir)/sources/lib/socket/libSocket.la \
 		   $(top_builddir)/sources/lib/client/libClient.la
 

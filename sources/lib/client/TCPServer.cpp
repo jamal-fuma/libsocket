@@ -18,7 +18,6 @@ TCPServer::~TCPServer()
 {
 }
 
-
 bool
 TCPServer::accept(BufferedSocket & sock)
 {
@@ -37,11 +36,11 @@ TCPServer::accept(BufferedSocket & sock)
 void
 TCPServer::add_readable_sockets(EventLoopCTX & ctx)
 {
-    ctx.add_to_readset(get_sockfd());
+    EventLoop::add_to_readset(*this,ctx);
 }
 
 bool
 TCPServer::accept_connecting_socket(EventLoopCTX & ctx, BufferedSocket & connection)
 {
-    return (ctx.fd_in_readset(get_sockfd()) && accept(connection));
+    return (EventLoop::is_readable(*this,ctx) && accept(connection));
 }
