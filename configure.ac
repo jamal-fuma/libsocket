@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.61])
-AC_INIT([fuma-socket-library],[0.0.2],[jamal.natour@fumasoftware.com])
+AC_INIT([fuma-socket-library],[0.0.3],[jamal.natour@fumasoftware.com])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
