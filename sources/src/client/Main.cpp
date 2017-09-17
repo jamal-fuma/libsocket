@@ -19,10 +19,27 @@ main(int argc, char *argv[])
 
     EchoClient client;
     client.connect(
-        Address("173.194.34.135",80)
+        Address("84.234.17.171",80)
     );
 
+    ssize_t bytes_out=0, bytes_in=0;
+
     std::string s;
-    client.echo("GET / HTTP/1.0\n\n");
+    bytes_out = client.request(
+        "GET / HTTP/1.1\r\n"
+        "Host: www.fumasoftware.com\r\n"
+        "\r\n"
+    );
+
+    for(std::string reply(client.response()); !reply.empty(); reply.assign(client.response()))
+    {
+        bytes_in += reply.size();
+    }
+
+    Log("EchoClient::handle_response()")
+        << " sent: " << bytes_out
+        << " recv: " << bytes_in
+        << " xfer: " << (bytes_in + bytes_out);
+
     return EXIT_SUCCESS;
 }

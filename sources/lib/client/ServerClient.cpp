@@ -46,7 +46,6 @@ int ServerClient::poll_connections()
     return rc;
 }
 
-
 ssize_t ServerClient::write(const std::string & str)
 {
     return m_reply.write(str);

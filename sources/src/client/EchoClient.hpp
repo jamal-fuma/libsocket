@@ -11,7 +11,7 @@ public:
     EchoClient();
     virtual ~EchoClient();
 
-    ssize_t echo(const std::string & str);
+    ssize_t request(const std::string & str);
 
     virtual void established_connection(BufferedSocket & outgoing);
     virtual void exchange_oob(EventLoopCTX & ctx);

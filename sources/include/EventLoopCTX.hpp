@@ -177,7 +177,7 @@ namespace BufferIO
         ::memcpy(buffer.write_head(),&v[0],written);
         buffer.complete_write(written);
 
-        return size - written;
+        return written;
     }
 }
 

@@ -12,21 +12,25 @@ EchoClient::~EchoClient()
 {
 }
 
-ssize_t EchoClient::echo(const std::string & str)
+ssize_t EchoClient::request(const std::string & str)
 {
-    ssize_t rc = m_server.write(str);
-    run();
+    ssize_t written = 0;
+    ssize_t rc;
 
-    std::string s;
-    while(1)
+    ssize_t begin(0);
+    ssize_t remaining(str.size());
+
+    do
     {
-        s = response();
-        std::cout << s << std::endl;
-        if(s.empty())
-            break;
-    }
+        rc = m_server.write(str.substr(begin+written));
+        if(rc > 0)
+        {
+            written += rc;
+        }
+        run();
+    }while((remaining - written) > 0 && rc > 0);
 
-    return rc;
+    return written;
 }
 
 void EchoClient::established_connection(BufferedSocket & outgoing)
